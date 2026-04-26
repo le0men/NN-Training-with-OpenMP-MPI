@@ -19,6 +19,21 @@ endif
 
 INCLUDES := -I include -I $(EIGEN_INC)
 
+ifeq ($(OMP),1)
+  CXXFLAGS += -fopenmp
+  LDFLAGS  += -fopenmp
+  TARGET   := build/train_omp
+  ifdef THREADS
+    CXXFLAGS += -DOMP_NUM_THREADS_DEFAULT=$(THREADS)
+    $(info OpenMP build enabled -> $(TARGET)  [threads: $(THREADS)])
+  else
+    $(info OpenMP build enabled -> $(TARGET)  [threads: runtime default])
+  endif
+else
+  TARGET   := build/train
+  $(info OpenMP build disabled -> $(TARGET)  [use OMP=1 to enable])
+endif
+
 .PHONY: all clean
 
 all: build $(TARGET)

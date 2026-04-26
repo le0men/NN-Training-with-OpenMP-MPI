@@ -20,8 +20,22 @@ python3 download_mnist.py   # pulls MNIST into data/
 make
 ./build/train
 ```
-
+ 
 On Mac if `g++` isn't available: `make CXX=clang++`
+ 
+### OpenMP (parallel) build
+ 
+```bash
+make OMP=1
+./build/train_omp
+```
+ 
+To cap the number of threads (default is all logical cores):
+ 
+```bash
+make OMP=1 THREADS=8
+./build/train_omp
+```
 
 Should hit ~97% test accuracy by epoch 10. Each epoch takes a few seconds on a laptop.
 
