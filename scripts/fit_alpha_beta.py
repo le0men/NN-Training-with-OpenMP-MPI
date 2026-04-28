@@ -1,22 +1,4 @@
 #!/usr/bin/env python3
-"""
-Fit the alpha-beta latency model (T = alpha + beta * N) to allreduce_bench output.
-
-Usage:
-    mpirun -np 8 ./build/allreduce_bench | python3 scripts/fit_alpha_beta.py
-    python3 scripts/fit_alpha_beta.py bench_output.txt
-    python3 scripts/fit_alpha_beta.py bench_output.txt --plot
-
-The alpha-beta model:
-    T(N) = alpha + beta * N * sizeof(double)
-    alpha = per-message latency (us)
-    beta  = inverse bandwidth (us/byte) -> 1/beta = bandwidth (GB/s)
-
-allreduce_bench prints:
-    size   algo   median_ms   min_ms   GB/s_eff
-where `size` is the number of doubles in the buffer.
-"""
-
 import sys
 import re
 import numpy as np
