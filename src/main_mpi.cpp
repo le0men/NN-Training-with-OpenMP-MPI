@@ -21,6 +21,7 @@
 #include <cstring>
 #include <numeric>
 #include <random>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -59,6 +60,7 @@ static void print_usage(const char* prog) {
         "  --global-batch <int>           total batch size across ranks (default: 64)\n"
         "  --lr <float>                   learning rate (default: 0.01)\n"
         "  --momentum <float>             SGD momentum (default: 0.9)\n"
+        "  --layers <int,int,...>         network layer sizes (default: 784,256,128,10)\n"
         "  --nonblocking                  pipeline per-layer iallreduce with backward\n"
         "  --verify                       per-iter verify hand-rolled all-reduce vs MPI_Allreduce\n"
         "  --warmup <int>                 skip first N iterations in timing (default: 0)\n"
@@ -67,6 +69,17 @@ static void print_usage(const char* prog) {
         "  --verbose                      extra logging on rank 0\n"
         "  -h, --help                     show this message\n",
         prog);
+}
+
+static std::vector<int> parse_layers(const std::string& s) {
+    std::vector<int> out;
+    std::stringstream ss(s);
+    std::string tok;
+    while (std::getline(ss, tok, ','))
+        if (!tok.empty()) out.push_back(std::stoi(tok));
+    if (out.size() < 2)
+        throw std::invalid_argument("--layers needs at least 2 values (input,output)");
+    return out;
 }
 
 static Options parse_args(int argc, char** argv) {
@@ -82,6 +95,7 @@ static Options parse_args(int argc, char** argv) {
         else if (a == "--global-batch") o.global_batch = std::stoi(need("--global-batch"));
         else if (a == "--lr")           o.lr           = std::stod(need("--lr"));
         else if (a == "--momentum")     o.momentum     = std::stod(need("--momentum"));
+        else if (a == "--layers")       o.sizes        = parse_layers(need("--layers"));
         else if (a == "--nonblocking")  o.nonblocking  = true;
         else if (a == "--verify")       o.verify       = true;
         else if (a == "--warmup")       o.warmup_iters = std::stoi(need("--warmup"));
