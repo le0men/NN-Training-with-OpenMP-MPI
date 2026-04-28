@@ -26,7 +26,7 @@ echo "ranks,epoch,loss,acc,time_s,samples_per_s" > "$OUT"
 for P in $RANKS; do
     echo "=== ranks=$P algo=$ALGO ==="
     LOG=$(mktemp)
-    mpirun -np "$P" --oversubscribe ./build/train_mpi \
+    srun -n "$P" ./build/train_mpi \
         --algo "$ALGO" --epochs "$EPOCHS" --global-batch "$GLOBAL_BATCH" \
         --warmup 5 $EXTRA | tee "$LOG"
 

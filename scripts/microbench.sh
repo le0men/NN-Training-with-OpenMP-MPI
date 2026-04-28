@@ -22,7 +22,7 @@ fi
 echo "ranks,size,algo,median_ms,min_ms,gbs_eff" > "$OUT"
 
 LOG=$(mktemp)
-mpirun -np "$P" --oversubscribe ./build/allreduce_bench \
+srun -n "$P" ./build/allreduce_bench \
     --sizes "$SIZES" --reps "$REPS" | tee "$LOG"
 
 # Lines look like:   1024       tree         0.1234       0.1100        0.123

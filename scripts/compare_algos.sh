@@ -34,7 +34,7 @@ run_one() {
     [[ "$nb" = "1" ]] && extra="--nonblocking"
 
     local LOG; LOG=$(mktemp)
-    mpirun -np "$P" --oversubscribe ./build/train_mpi \
+    srun -n "$P" ./build/train_mpi \
         --algo "$algo" --epochs "$EPOCHS" --global-batch "$GLOBAL_BATCH" \
         --warmup 10 $extra | tee "$LOG"
 
