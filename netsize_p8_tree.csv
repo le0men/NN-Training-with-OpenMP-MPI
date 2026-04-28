@@ -1,0 +1,5 @@
+config,params_approx,algo,compute_ms,allreduce_ms,iter_ms,allreduce_pct
+small,50890,tree,0.201,0.616,0.951,64.7
+medium,235146,tree,0.822,2.843,3.985,71.3
+large,567434,tree,2.205,6.076,9.116,66.7
+xlarge,1462538,tree,7.749,12.710,22.836,55.7

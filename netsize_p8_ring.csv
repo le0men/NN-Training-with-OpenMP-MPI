@@ -1,0 +1,5 @@
+config,params_approx,algo,compute_ms,allreduce_ms,iter_ms,allreduce_pct
+small,50890,ring,0.212,0.411,0.767,53.6
+medium,235146,ring,0.820,1.369,2.626,52.2
+large,567434,ring,2.426,3.808,7.098,53.7
+xlarge,1462538,ring,4.969,10.390,16.736,62.1
