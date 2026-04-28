@@ -8,21 +8,39 @@ SIZEOF_DOUBLE = 8  # bytes
 
 
 def parse_bench_output(lines):
-    """Return dict: algo -> list of (N_bytes, median_s)."""
+    """Return dict: algo -> list of (N_bytes, median_s).
+
+    Accepts two formats:
+      CSV (from microbench.sh):  ranks,size,algo,median_ms,min_ms,gbs_eff
+      Raw (from allreduce_bench): <size> <algo> <median_ms> <min_ms> <gbs>
+    """
     data = defaultdict(list)
     for line in lines:
         line = line.strip()
         if not line or line.startswith("#"):
             continue
-        parts = line.split()
-        if len(parts) < 3:
-            continue
-        try:
-            n_doubles = int(parts[0])
-            algo = parts[1]
-            median_ms = float(parts[2])
-        except ValueError:
-            continue
+        # CSV format: comma-separated, header row starts with "ranks"
+        if "," in line:
+            parts = [p.strip() for p in line.split(",")]
+            if parts[0] == "ranks":  # header
+                continue
+            try:
+                n_doubles = int(parts[1])   # column: size
+                algo = parts[2]             # column: algo
+                median_ms = float(parts[3]) # column: median_ms
+            except (ValueError, IndexError):
+                continue
+        else:
+            # Raw space-separated format
+            parts = line.split()
+            if len(parts) < 3:
+                continue
+            try:
+                n_doubles = int(parts[0])
+                algo = parts[1]
+                median_ms = float(parts[2])
+            except ValueError:
+                continue
         n_bytes = n_doubles * SIZEOF_DOUBLE
         median_s = median_ms / 1000.0
         data[algo].append((n_bytes, median_s))
