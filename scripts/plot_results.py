@@ -10,6 +10,7 @@ Outputs (saved to plots/):
     netsize_allreduce.png   -- allreduce time vs model size per algorithm
     netsize_allreduce_pct.png -- allreduce % of iter vs model size
     strong_scaling.png      -- throughput (samples/s) vs rank count
+    hd_nonpower2.png        -- HD latency: power-of-2 vs non-power-of-2 ranks
 """
 
 import os
@@ -223,8 +224,9 @@ def plot_strong_scaling():
     plt.close()
     print("saved plots/strong_scaling.png")
 
+
 # ---------------------------------------------------------------------------
-# 4. HD non-power-of-2 fold overhead plot
+# 5. HD non-power-of-2 fold overhead plot
 # ---------------------------------------------------------------------------
 def plot_hd_nonpower2(csv_path="hd_nonpower2_comparison.csv"):
     if not os.path.exists(csv_path):
