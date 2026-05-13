@@ -179,19 +179,44 @@ void halving_doubling(double* buf, std::size_t count, MPI_Comm comm) {
     MPI_Comm_size(comm, &size);
     if (size == 1) return;
 
-    if ((size & (size - 1)) != 0) {
-        // Non-power-of-2: defer to MPI_Allreduce. Implementing the classic
-        // Rabenseifner "fold extra ranks first" trick is straightforward but
-        // not the focus of the comparison.
-        MPI_Allreduce(MPI_IN_PLACE, buf, (int)count, MPI_DOUBLE, MPI_SUM, comm);
+    int p2    = 1;
+    while (p2 * 2 <= size) p2 *= 2;
+    int extra = size - p2;
+
+    std::vector<double> tmp_fold;
+    bool active = true;
+    int  vrank  = rank;
+
+    if (extra > 0) {
+        if (rank < 2 * extra) {
+            if (rank % 2 == 1) {
+                MPI_Send(buf, (int)count, MPI_DOUBLE, rank - 1, 400, comm);
+                active = false;
+            } else {
+                tmp_fold.resize(count);
+                MPI_Recv(tmp_fold.data(), (int)count, MPI_DOUBLE, rank + 1, 400,
+                         comm, MPI_STATUS_IGNORE);
+                for (std::size_t i = 0; i < count; ++i) buf[i] += tmp_fold[i];
+                vrank = rank / 2;
+            }
+        } else {
+            vrank = rank - extra;
+        }
+    }
+
+    if (!active) {
+        MPI_Recv(buf, (int)count, MPI_DOUBLE, rank - 1, 401, comm, MPI_STATUS_IGNORE);
         return;
     }
 
     int log_size = 0;
-    while ((1 << log_size) < size) ++log_size;
+    while ((1 << log_size) < p2) ++log_size;
 
-    // Pad up to a multiple of size with zeros.
-    std::size_t padded     = ((count + size - 1) / size) * size;
+    auto vrank_to_real = [&](int vr) -> int {
+        return (vr < extra) ? vr * 2 : vr + extra;
+    };
+
+    std::size_t padded     = ((count + (std::size_t)p2 - 1) / p2) * p2;
     bool        needs_pad  = padded != count;
     std::vector<double> padded_buf;
     double* work = buf;
@@ -203,14 +228,14 @@ void halving_doubling(double* buf, std::size_t count, MPI_Comm comm) {
 
     std::vector<double> recv_buf(padded);
 
-    // Recursive halving reduce-scatter
     std::size_t lo = 0, hi = padded;
     for (int k = 0; k < log_size; ++k) {
-        int partner = rank ^ (1 << (log_size - 1 - k));
+        int vpartner = vrank ^ (1 << (log_size - 1 - k));
+        int partner  = vrank_to_real(vpartner);
 
         std::size_t mid = lo + (hi - lo) / 2;
         std::size_t send_lo, send_hi, recv_lo, recv_hi;
-        if (rank < partner) {
+        if (vrank < vpartner) {
             send_lo = mid; send_hi = hi;
             recv_lo = lo;  recv_hi = mid;
         } else {
@@ -229,13 +254,13 @@ void halving_doubling(double* buf, std::size_t count, MPI_Comm comm) {
         hi = recv_hi;
     }
 
-    // Recursive doubling all-gather
     for (int k = 0; k < log_size; ++k) {
-        int partner = rank ^ (1 << k);
+        int vpartner = vrank ^ (1 << k);
+        int partner  = vrank_to_real(vpartner);
 
         std::size_t span = hi - lo;
         std::size_t their_lo, their_hi;
-        if (rank < partner) {
+        if (vrank < vpartner) {
             their_lo = hi;        their_hi = hi + span;
         } else {
             their_lo = lo - span; their_hi = lo;
@@ -251,6 +276,10 @@ void halving_doubling(double* buf, std::size_t count, MPI_Comm comm) {
 
     if (needs_pad) {
         std::copy(padded_buf.begin(), padded_buf.begin() + count, buf);
+    }
+
+    if (extra > 0 && rank < 2 * extra && rank % 2 == 0) {
+        MPI_Send(buf, (int)count, MPI_DOUBLE, rank + 1, 401, comm);
     }
 }
 
