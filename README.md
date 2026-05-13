@@ -129,9 +129,6 @@ P=8 SIZES=1024,8192,65536,524288,4194304 REPS=30 ./scripts/microbench.sh
 
 ## Adding MPI elsewhere
 
-The same drop-in pattern from the original README still works — just point at
-the hand-rolled all-reduce instead of `MPI_Allreduce`:
-
 ```cpp
 #include "allreduce.h"
 
