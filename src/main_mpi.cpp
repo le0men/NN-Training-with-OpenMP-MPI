@@ -89,6 +89,15 @@ static Options parse_args(int argc, char** argv) {
         else if (a == "--test")         o.test_csv     = need("--test");
         else if (a == "--verbose")      o.verbose      = true;
         else if (a == "-h" || a == "--help") { print_usage(argv[0]); std::exit(0); }
+        else if (a == "--sizes") {
+        o.sizes.clear();
+        while (i + 1 < argc && argv[i + 1][0] != '-') {
+            o.sizes.push_back(std::stoi(argv[++i]));
+        }
+        if (o.sizes.size() < 2) {
+            throw std::invalid_argument("--sizes needs at least 2 layer dimensions");
+        }
+    }
         else throw std::invalid_argument("unknown arg: " + a);
     }
     return o;
