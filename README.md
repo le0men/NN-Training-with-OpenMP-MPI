@@ -2,13 +2,9 @@
 
 C++ feedforward net trained on MNIST, with three back-ends:
 
-- `build/train`            — sequential / OpenMP baseline (unchanged)
+- `build/train`            — sequential / OpenMP baseline
 - `build/train_mpi`        — data-parallel SGD with selectable all-reduce algorithm
 - `build/allreduce_bench`  — standalone correctness + microbenchmark for the all-reduces
-
-`include/nn.h` and `src/nn.cpp` are untouched. The MPI code uses the existing
-`pack_gradients` / `unpack_gradients` interface, so nothing in the network
-implementation knows MPI exists.
 
 ## Dependencies
 
