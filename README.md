@@ -138,15 +138,8 @@ P=8 SIZES=1024,8192,65536,524288,4194304 REPS=30 ./scripts/microbench.sh
 
 ## Perlmutter
 
+Figures #3 and #4 on our report were made running one node:
+
 ```bash
-module load PrgEnv-gnu cray-mpich
-git clone --branch 3.4.0 --depth 1 https://gitlab.com/libeigen/eigen.git
-make all CXX=g++ MPICXX=CC
-
-salloc --nodes=2 --ntasks-per-node=4 --qos=interactive --time=00:30:00 \
-       --constraint=cpu -A <account>
-srun -n 8 ./build/train_mpi --algo ring --epochs 10 --global-batch 256
+salloc -N 1 -C cpu -q interactive -t 01:00:00 -A [account]
 ```
-
-For hybrid MPI+OpenMP runs, `OMP_NUM_THREADS` controls the thread count per
-rank; pin ranks with `srun --cpu-bind=cores`.
